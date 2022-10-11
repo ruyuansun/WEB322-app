@@ -1,0 +1,12 @@
+.container-fluid{
+    background-color:rgb(162, 203, 217);
+    margin-bottom: 10px;
+} 
+body{
+    background-color:bisque;
+    color: sienna;
+}
+h2{
+    text-shadow:2px 2px burlywood;
+}
+
