@@ -70,7 +70,7 @@ module.exports.getCategories = function () {
 
 module.exports.addBlog = function (postData) {
     return new Promise(function (resolve, reject) {
-        postData.published = (postData.published) ? true : false;   //If the user click the checkbox in the web form, save true; else, save false
+        postData.published = (postData.published) ? true : false;   //If the user clicks the checkbox in the web form, save true; else, save false
         postData.id = posts.length + 1;   
         posts.push(postData);
         resolve();
