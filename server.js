@@ -119,7 +119,7 @@ app.post("/posts/add", upload.single("featureImage"), function (req, res, next) 
         req.body.featureImage = uploaded.url;
 
         // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
-        blog.addBlog(req.body).then(() => {    //NOTE: req.body will fetch the data from the form, and addMovie will add the data to the temporary array on the page /posts, but not save the data to the array in posts.json
+        blog.addBlog(req.body).then(() => {    //NOTE: req.body will fetch the data from the form, and addBlog will add the data to the temporary array on the page /posts, but not save the data to the array in posts.json
             res.redirect("/posts");
         });
     });
