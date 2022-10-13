@@ -59,7 +59,7 @@ app.get("/posts", (req, res) => {
         blog.getPostsByCategory(value).then((data) => {
             res.json(data);
         }).catch((err) => {
-            console.log("Unable to get posts in the category " + value + ": " + err);
+            res.json({ message: "Unable to get posts in the category " + value + ": " + err });
         });
     }
 
@@ -67,7 +67,7 @@ app.get("/posts", (req, res) => {
         blog.getPostsByMinDate(day).then((data) => {
             res.json(data);
         }).catch((err) => {
-            console.log("Unable to get posts on or after the day " + day + ": " + err);
+            res.json({ message: "Unable to get posts on or after the day " + day + ": " + err });
         });
     }
 
@@ -130,7 +130,7 @@ app.get("/posts/:value", (req, res) => {
     blog.getPostById(ID).then((data) => { 
         res.json(data);   //json(data) converts data from the format in JavaScript to json
     }).catch((err) => {
-        console.log("Unable to get posts with ID " + ID + ": " + err);
+        res.json({ message: "Unable to get posts with ID " + ID + ": " + err });
     });
 });
 
