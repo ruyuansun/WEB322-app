@@ -56,6 +56,25 @@ module.exports.getPublishedPosts = function () {
     });
 }
 
+module.exports.getPublishedPostsByCategory = function (category) { 
+    return new Promise((resolve, reject) => {
+        var publishedPostsByCategory = [];   //create a temp array to store the elements filtered out of the 'posts' array
+        for (let i = 0; i < posts.length; i++){
+            if (posts[i].published == true && posts[i].category == category) {
+                //use push to add an element to the end of an array; use unshift to add an element at the beginning of an array
+                publishedPostsByCategory.push(posts[i]);
+            }
+        }
+
+        if (publishedPostsByCategory.length == 0) {
+            reject("no published posts returned");
+        }
+        else { 
+            resolve(publishedPostsByCategory);
+        }
+    });
+}
+
 module.exports.getCategories = function () { 
     return new Promise((resolve, reject) => {
         //check the size of the 'posts' array
@@ -68,10 +87,11 @@ module.exports.getCategories = function () {
     });
 }
 
-module.exports.addBlog = function (postData) {
+module.exports.addPost = function (postData) {
     return new Promise(function (resolve, reject) {
         postData.published = (postData.published) ? true : false;   //If the user clicks the checkbox in the web form, save true; else, save false
-        postData.id = posts.length + 1;   
+        postData.id = posts.length + 1;
+        postData.postDate = new Date().toISOString().slice(0, 10);
         posts.push(postData);
         resolve();
     });
