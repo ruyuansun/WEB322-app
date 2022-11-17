@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col-md-12">
-        <h2>Posts</h2>
+        <h2>Posts<a href="/posts/add" class="btn btn-success pull-right">Add Post</a></h2>
         <hr />
         <div class="table-responsive">
             <table class="table">
@@ -11,16 +11,18 @@
                         <th>Post&nbsp;Date</th>
                         <th>Category</th>
                         <th>Published</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {{#each posts}}   {{!the data in the posts array is fetched from posts.json by res.render() in /posts route in server.js}}
-                        <tr>   {{!create a table row with 5 cells for each post}}
+                        <tr>   
                             <td>{{id}}</td>    {{!fetch attributes value}}
                             <td>{{title}}</a></td>
-                            <td>{{postDate}}</td>
+                            <td>{{#formatDate postDate}}{{/formatDate}}</td>
                             <td><a href="/posts?category={{category}}">{{category}}</a></td>
                             <td>{{published}}</td>
+                            <td><a class="btn btn-danger" href="/posts/delete/{{id}}">remove</a></td>
                         </tr>
                     {{/each}}   {{!the end of the loop}}
                 </tbody>
