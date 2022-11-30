@@ -4,7 +4,7 @@
 *  of this assignment has been copied manually or electronically from any other source 
 *  (including 3rd party web sites) or distributed to other students.
 * 
-*  Name: ___Ruyuan Sun___ Student ID: __101836229___ Date: __Nov 16, 2022______
+*  Name: ___Ruyuan Sun___ Student ID: __101836229___ Date: __Nov 30, 2022______
 *
 *  Online (Cyclic) Link: https://spotless-erin-sheep.cyclic.app 
 *
@@ -14,6 +14,7 @@ var express = require("express");    //variable "express" requires "express" lib
 var app = express(); 
 var path = require("path");
 const blog = require("./blog-service.js");
+const authData = require("./auth-service.js");
 const multer = require("multer");
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({
@@ -26,8 +27,33 @@ const upload = multer();
 const streamifier = require('streamifier');
 const exphbs = require('express-handlebars');
 const stripJs = require('strip-js');
+const clientSessions = require("client-sessions");
 
 var HTTP_PORT = process.env.PORT || 8080; 
+
+app.use(clientSessions({
+    cookieName: "session",    //object name added to 'req'
+    secret: "WEB322_ass6",   //description
+    //If the user is not active in 2 minutes, end the session in 1 minute
+    duration: 2 * 60 * 1000,   //timer in ms(duration of the session). 
+    activeDuration: 60 * 1000 //timer in ms(extension time of the session). 
+}));
+
+//custom middleware to add session to all the views(res)
+app.use(function (req, res, next) {
+    res.locals.session = req.session;
+    next();   //allow the user to go to another page when they are signed in
+});
+
+//helper middleware(ensure login)
+function ensurelogin(req, res, next) { 
+    if (!req.session.user) { // If the user did not login, redirect to the login in page
+        res.redirect("/login");
+    }
+    else { //If the user loged in, allow the uset to go to any page
+        next();
+    }
+}
 
 app.engine('.hbs', exphbs.engine({ extname: '.hbs' }));
 app.set('view engine', '.hbs');
@@ -161,7 +187,7 @@ app.get('/blog/:id', async (req, res) => {
     res.render("blog", {data: viewData})
 });
 
-app.get("/posts", (req, res) => {
+app.get("/posts", ensurelogin, (req, res) => {
     let value = req.query.category; 
     let day = req.query.minDate;
 
@@ -205,7 +231,7 @@ app.get("/posts", (req, res) => {
     }
 });
 
-app.get("/posts/add", (req, res) => {
+app.get("/posts/add", ensurelogin, (req, res) => {
     blog.getCategories().then((data) => {
         res.render("addPost", {categories: data});
     }).catch((err) => {
@@ -213,7 +239,7 @@ app.get("/posts/add", (req, res) => {
     });
 });
 
-app.post("/posts/add", upload.single("featureImage"), (req,res)=>{
+app.post("/posts/add", ensurelogin, upload.single("featureImage"), (req,res)=>{
 
     if(req.file){
         let streamUpload = (req) => {
@@ -253,7 +279,7 @@ app.post("/posts/add", upload.single("featureImage"), (req,res)=>{
     }   
 });
 
-app.get("/posts/:value", (req, res) => {
+app.get("/posts/:value", ensurelogin, (req, res) => {
     let ID = req.params.value; 
     blog.getPostById(ID).then((data) => { 
         res.json(data);   //json(data) converts data from the format in JavaScript to json
@@ -262,7 +288,7 @@ app.get("/posts/:value", (req, res) => {
     });
 });
 
-app.get("/posts/delete/:id", (req, res) => {
+app.get("/posts/delete/:id", ensurelogin, (req, res) => {
     blog.deletePostById(req.params.id).then((posts) => {
         res.redirect("/posts");
     }).catch((err) => {
@@ -270,7 +296,7 @@ app.get("/posts/delete/:id", (req, res) => {
     });
 });
 
-app.get("/categories", (req, res) => {
+app.get("/categories", ensurelogin, (req, res) => {
     blog.getCategories().then((data) => {
         if (data.length > 0) {
             res.render("categories", { categories: data });
@@ -283,11 +309,11 @@ app.get("/categories", (req, res) => {
     });
 });
 
-app.get("/categories/add", (req, res) => {
+app.get("/categories/add", ensurelogin, (req, res) => {
     res.render("addCategory"); 
 });
 
-app.post("/categories/add", (req, res) => {
+app.post("/categories/add", ensurelogin, (req, res) => {
     blog.addCategory(req.body).then(category => {
         res.redirect("/categories");
     }).catch(err => {
@@ -295,7 +321,7 @@ app.post("/categories/add", (req, res) => {
     })
 }); 
 
-app.get("/categories/delete/:id", (req, res) => {
+app.get("/categories/delete/:id", ensurelogin, (req, res) => {
     blog.deleteCategoryById(req.params.id).then((categories)=>{
         res.redirect("/categories");
     }).catch((err) => {
@@ -303,11 +329,50 @@ app.get("/categories/delete/:id", (req, res) => {
     });
 });
 
+app.get("/login", (req, res) => {
+    res.render("login");
+});
+
+app.post("/login", (req, res) => {
+    req.body.userAgent = req.get('User-Agent');
+    authData.checkUser(req.body).then((user) => {
+        req.session.user = {
+            userName: user.userName,
+            email: user.email,
+            loginHistory: user.loginHistory
+        }
+        res.redirect("/posts");
+    }).catch((err) => {
+        res.render("login", { errorMessage: err, userName: req.body.userName });
+    });
+});
+
+app.get("/register", (req, res) => {
+    res.render("register");
+});
+
+app.post("/register", (req, res) => {
+    authData.registerUser(req.body).then(() => {
+        res.render("register", { successMessage: "User created" });
+    }).catch((err) => {
+        res.render("register", { errorMessage: err, userName: req.body.userName });
+    });
+});
+
+app.get("/logout", (req, res) => {
+    req.session.reset();    //reset the session to clear all cookies before the user logs out
+    res.redirect("/");   //redirect the user to the home page
+});
+
+app.get("/userHistory", ensurelogin, (req, res) => {
+    res.render("userHistory");
+});
+
 app.use((req, res) => {   //if the page is 404 not found()
     res.status(404).render(path.join(__dirname, "/views/404.hbs"));
 });
 
-blog.initialize().then(function () {   
+blog.initialize().then(authData.initialize).then(function () {   
     app.listen(HTTP_PORT, onHttpStart); 
 }).catch(function (err) {  //if an error occurs
     console.log("Unable to start server: " + err);
