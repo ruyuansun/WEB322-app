@@ -2,7 +2,10 @@
 
 ## Academic Integrity and Usage Disclaimer
 
-This repository is intended for educational purposes and to support learning. Students are advised to uphold academic integrity and avoid directly copying assignments from this repository. Plagiarism and cheating are violations of academic integrity policies and can lead to disciplinary actions.
+---
+
+This repository is publicly available for the purpose of seeking co-op opportunities. Please note that students should adhere to academic integrity and avoid directly copying assignments from this repository.
+
 ---
 
 ## Topic Outline
